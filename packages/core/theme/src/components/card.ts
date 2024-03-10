@@ -57,6 +57,7 @@ const card = tv({
       "h-auto",
       "break-words",
       "text-left",
+      "rtl:text-right",
       "overflow-y-auto",
       "subpixel-antialiased",
     ],
