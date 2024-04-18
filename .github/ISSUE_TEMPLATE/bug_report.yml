@@ -1,108 +1,30 @@
-name: 'Bug report'
-title: "[BUG] - YOUR_ISSUE_TITLE_HERE_REPLACE_ME"
-description: Create a report to help us improve
-labels: [bug]
-body:
-  - type: markdown
-    attributes:
-      value: |
-        Thank you for reporting an issue :pray:.
+name: Update Issue Template Version
 
-        This issue tracker is for reporting bugs found in [NextUI github repository](https://github.com/nextui-org/nextui/)
-        If you have a question about how to achieve something and are struggling, please post a question
-        inside of either of the following places:
-          - NextUI's [Discussion's tab](https://github.com/nextui-org/nextui/discussions)
-          - NextUI's [Discord channel](https://discord.gg/9b6yyZKmH4)
+on:
+  push:
+    paths:
+      - 'package.json'  # Trigger the workflow only when package.json is changed
 
+jobs:
+  update-version-in-template:
+    runs-on: ubuntu-latest
 
-        Before submitting a new bug/issue, please check the links below to see if there is a solution or question posted there already:
-         - NextUI's [Issue's tab](https://github.com/nextui-org/nextui/pulls?q=is%3Apr+is%3Aopen+sort%3Aupdated-desc)
-         - NextUI's [closed issues tab](https://github.com/nextui-org/nextui/issues?q=is%3Aissue+sort%3Aupdated-desc+is%3Aclosed)
-         - NextUI's [Discussions tab](https://github.com/nextui-org/nextui/discussions)
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-        The more information you fill in, the better the community can help you.
-  - type: input
-    id: version
-    attributes:
-      label: NextUI Version
-      description: |
-        Please provide the version of NextUI you are using.
-        You can find the version number in the package.json file.
-      placeholder: ex. 2.0.10
-    validations:
-      required: true
-  - type: textarea
-    id: description
-    attributes:
-      label: Describe the bug
-      description: Provide a clear and concise description of the challenge you are running into.
-    validations:
-      required: true
-  - type: input
-    id: link
-    attributes:
-      label: Your Example Website or App
-      description: |
-        Which website or app were you using when the bug happened?
-        Note:
-        - Your bug will may get fixed much faster if we can run your code and it doesn't have dependencies other than the `@nextui-org/react` npm package.
-        - To create a shareable code example you can use Stackblitz (https://stackblitz.com/). Please no localhost URLs.
-        - Please read these tips for providing a minimal example: https://stackoverflow.com/help/mcve.
-      placeholder: |
-        e.g. https://stackblitz.com/edit/...... OR Github Repo
-    validations:
-      required: false
-  - type: textarea
-    id: steps
-    attributes:
-      label: Steps to Reproduce the Bug or Issue
-      description: Describe the steps we have to take to reproduce the behavior.
-      placeholder: |
-        1. Go to '...'
-        2. Click on '....'
-        3. Scroll down to '....'
-        4. See error
-    validations:
-      required: true
-  - type: textarea
-    id: expected
-    attributes:
-      label: Expected behavior
-      description: Provide a clear and concise description of what you expected to happen.
-      placeholder: |
-        As a user, I expected ___ behavior but i am seeing ___
-    validations:
-      required: true
-  - type: textarea
-    id: screenshots_or_videos
-    attributes:
-      label: Screenshots or Videos
-      description: |
-        If applicable, add screenshots or a video to help explain your problem.
-        For more information on the supported file image/file types and the file size limits, please refer
-        to the following link: https://docs.github.com/en/github/writing-on-github/working-with-advanced-formatting/attaching-files
-      placeholder: |
-        You can drag your video or image files inside of this editor ↓
-  - type: input
-    id: os
-    attributes:
-      label: Operating System Version
-      description: What operating system are you using?
-      placeholder: |
-        - OS: [e.g. macOS, Windows, Linux]
-    validations:
-      required: true
-  - type: dropdown
-    id: browser_type
-    attributes:
-      label: Browser
-      description: Select the browsers where the issue can be reproduced (that you know of).
-      options:
-        - "Chrome"
-        - "Firefox"
-        - "Safari"
-        - "Edge"
-        - "Opera"
-        - "Other (add additonal context)"
-    validations:
-      required: true
+    - name: Extract version
+      id: pkg_version
+      run: echo "::set-output name=version::$(cat package.json | jq -r '.version')"
+
+    - name: Update issue template
+      run: |
+        sed -i 's/ex\. 2\.0\.10/${{ steps.pkg_version.outputs.version }}/g' .github/ISSUE_TEMPLATE/bug_report.yml
+
+    - name: Commit and push if changed
+      run: |
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+        git add .github/ISSUE_TEMPLATE/bug_report.yml
+        git commit -m "Update version in issue template to ${{ steps.pkg_version.outputs.version }}" || exit 0
+        git push
